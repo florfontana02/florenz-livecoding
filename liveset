@@ -1,0 +1,205 @@
+let bpm = 140
+let cpm = bpm / 4
+
+// cosas por hacer:
+//  - choppear samples
+//  - acomodar tracks por canciones
+//  - ver el set de dj dave
+//░▒▓████████▓▒░▒▓█▓▒░      ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░░▒▓████████▓▒░ 
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░ 
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓██▓▒░  
+//░▒▓██████▓▒░ ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██▓▒░    
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓██▓▒░      
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        
+//░▒▓█▓▒░      ░▒▓████████▓▒░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░  @_____florenz moooooor
+
+//------------------------------------------------------
+// macros de mugeeeer
+//------------------------------------------------------
+
+let energy   = 0.8
+// rhythmic “crowd” (0..1). 0 = sparse drums, 1 = full
+let density = 0.7
+// sidechain duck amount (0..1)
+let duckAmt = 0.35
+// extra wetness on synths (0..1) layered on top of power
+let wet     = 0.6
+// extra brightness on synths (0..1) layered on top of power
+let bright  = 0.3
+
+let break4  = 0
+let fills   = 1
+
+
+let cutoff = () => 200 + (energy + bright) * 5000
+let room   = () => 0.2 + (energy + wet)    * 0.8
+
+// utility: sidechain-ish gain curve (per bar)
+//let duck = (amt=duckAmt) => gain("<1 " + (1-amt) + " 1 " + (1-amt) + ">*2")
+
+// utility: drop/mute mask every N bars
+//let every = (n, pat) => pat.mask(("<" + "1 ".repeat(n-1) + "0" + ">").trim())
+
+
+//------------------------------------------------------
+// samples
+//------------------------------------------------------
+
+samples({
+  ruteronima: 'ruteronima.mp3',
+  fbi: 'with the fbi silly.wav'
+
+}, 'https://raw.githubusercontent.com/florfontana02/florenz-livecoding/main/samples/')
+
+//------------------------------------------------------
+// beatz
+//------------------------------------------------------
+
+let drums_basic = stack(
+  sound("<bd>*4").bank("RolandTR808"),
+  sound("<- hh>*8").bank("LinnDrum").gain(0.1),
+  sound("<- sd>*4").gain(0.3)
+)
+
+let drums_full = stack(
+  sound("<bd>*4").bank("RolandTR808"),
+  sound("<[- hh hh hh]>*4").bank("RolandTR808"),
+  //sound("<- sd>*4").bank("RolandTR808"),
+  //sound("<- cp:3>*4").bank("RolandTR808").gain(.3),
+  //sound("<- hh>*8").bank("LinnDrum").gain(.1),
+  
+  //sound("<sh>*8").bank("RolandTR808").gain(.25),
+  sound("<bd - bd [- sd]>*8").bank("RolandTR808") ._punchcard()
+)
+
+let drums = (density < 0.5 ? drums_basic : drums_full)
+  .mask(break4 ? "<1 1 1 0>" : "<1 1 1 1>")
+  //.pipe(duck(duckAmt))
+
+
+//------------------------------------------------------
+// bajeiros
+//------------------------------------------------------
+
+let bass_seq1 = "<c2>*4 <g1>*4".note()
+  .n(3).sound("gm_synth_bass_1")
+  .lpf(cutoff()).lpenv(5).lpa(.5).lps(.8).lpd(.1)
+
+let bass_seq2 = cat(
+  "<d4 f4 a4 bb4 c4 eb4 g4 d5>*4","<d4 f4 a4 bb4 c4 eb4 g4 d5>*4").note()
+  .n(1).sound("gm_synth_bass_1").transpose(-24)
+  .lpf(cutoff()).lpenv(5).lpa(.5).lps(.8).lpd(.1).gain(0.8)
+
+// simple scene-based choose (tie to density as well)
+let bass = (density < 0.5 ? bass_seq1 : bass_seq2).gain(20)
+ // .pipe(duck(duckAmt * 0.6))
+
+
+//------------------------------------------------------
+// synths
+//------------------------------------------------------
+let flin_melo = cat(
+  "<f6 eb6 d6 bb5>*4","<->/4","<[a5 bb5] [a5 bb5] a5 f5>*4","<->/4","<eb5 g5 d6 bb5>*4","<->/4","<a6!2 f6!2>*4","<->/4")
+  .note().n(1).sound("gm_fx_atmosphere").decay(.95)
+  .lpf(cutoff()).lpenv(-3).lpa(.2).delay(".3:.225:.45").room(room()).rsize(2).gain(0.8)
+
+let flin_arp = cat(
+  "<d4 f4 a4 bb4 c4 eb4 g4 d5>*4","<d4 f4 a4 bb4 c4 eb4 g4 d5>*4")
+  .note()
+  .n(-4) // pick octave shift if needed
+  .sound("gm_fx_atmosphere")
+  .attack(.001).release(.1)
+  .lpf(Math.min(3000, cutoff()+1000))
+  .gain(0.8).delay(".3:.225:.45")
+  .room(room()).rsize(2)
+
+
+let arp1 = "<c3 c4 eb4 c3>*8".note()
+  .n(1).sound("gm_pad_poly")
+  .decay(.95)
+  .lpf(Math.min(3000, cutoff()+1000))
+  .delay(".3:.225:.45")
+  .room(room()).rsize(2)
+
+let arp2 = "<g2 g3 bb4 g2>*8".note()
+  .n(1).sound("gm_pad_poly")
+  .decay(.95)
+  .lpf(cutoff()).lpenv(-3).lpa(.2)
+  .delay(".3:.225:.45")
+  .room(room()).rsize(2)
+
+
+
+//------------------------------------------------------
+// bucals
+//------------------------------------------------------
+
+let hola_jero = s("ruteronima/2").begin(.35).end(.6).attack(.25)
+.room(room()).rsize(2).gain(slider(1,0,1)).lpf(slider(1975.8,300,6000))
+
+
+let fbi = s("fbi/2").begin(.0).end(1).attack(.25)
+  .delay(".25:.45:.4").room(room()).rsize(2)
+
+// one chop per bar
+let ruterita = s("ruteronima").begin("<.35  .60 >").end  ("<.60  .83 >")
+
+// one chop per beat (4 inside the bar)
+let voxBeat = s("ruteronima")
+  .begin("<.35  .60>*4")
+  .end  ("<.60  .84>*4")
+
+let voxRR = s("ruteronima")
+  .begin("<.1 .37 .67>")
+  .end  ("<0.3 .60 .83>")
+  .attack(.16).room(room()).rsize(2).gain(0.9)
+  
+
+
+
+let vocals = voxRR
+  .lpf(slider(4184.6,200,6000))
+  .attack(.1).room(room()).rsize(2).gain(0.9)
+  ._scope({width:10000, weight:1000})
+  
+
+  //cat(hola_jero, fbi)
+  //stack([300voxB])
+ // choose vox2 or a stack([vox1,vox2]) live
+
+
+let synths = arp1 // swap live
+
+
+let song = stack(drums, vocals, bass, flin_melo)
+
+
+
+song.cpm(cpm)
+
+
+//                                    ¸¸,..--------------------.....,¸
+//                      ¸,..--··˜˜¨¨                                     ¨¨˜·.¸
+//                 ¸.·˜                                                          ˜·¸
+//             ¸.·˜                                                          ¸˜    ˜¸
+//         ¸¸·''                                                           ¸ ·  ˜¸  ˜
+//        ¸˜¨  ¸¸˜                                                    ¸.·˜¸ ·˜
+//       ¸'     ˜·¸                                         ¸,..--·.¸
+//      ¸'¸¸¸      ˜-.¸                                 ¸,..---···-¸˜¨¸
+//    ·˜¸¸¸¸¸¸¯¯˜·.¸      .¸·˜                 ¸,-·˜;;;;;;;;;;;;¸'˜
+//       ¸·˜ ;;;;;;,˜·¸   ˜¸      ˜.¸          ¸.˜;;;;;;;;;;;;;;;;¸'
+//      ';;;;;;;;;;;;;;;;¸¸ '¸       ´      ¸·';;;;;;;;;;;;;;;;; ¸´
+//      ';;;;;;;;;;;;;;;;;;'¸ ˜¸         /¸/;;;;;;;;;;;;;;;; ¸.·˜ ¸˜       ¸˜    blip blorp
+//      ˜·.,¸¸¸.....----·¸/        ˜-¨˜˜˜˜˜˜˜˜¨¨¸¸,.·-'˜               ˜·¸·˜
+//           ˜¯¸¸¸¸¸   ¸·˜   ¸·    ´  ¯¯¯¯¯                        ¸·'˜
+//              ˜·¸   ·¨¸¸,,,.˜ .,¸                               ¸,.·˜¨
+//                  ˜¨¸           ¯˜·¸              ¸.···˜˜·¸.·˜¨¸/
+//                     ˜·¸¸¸,,,,¸¸¸¸   ˜¸         ¸·˜   ¸.·˜,˜ ¸·˜¨
+//                        ¨¸¨˜˜˜'˜¨¨¯'   ˜¸       ˜¸,.·˜¸;     \¸
+//                          ˜¸            ˜¸.   ¸·˜;;;˜         '¸
+//                           ˜¸¸          ¸,.-·¨¸;;;              '¸
+//                          ¸,·´¯¨˜˜˜¨¯¯;;;;;;;˜                 ˜.,¸¸¸
+//  ;;;;;;;;;;;;;;;;;  ¸,.·˜;;;;;;;;;;;;;;;;;;;˜                          ˜·¸ ';;
+//  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  ;;
+//  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  ;;
+//    ¨¨¨¨¨¨¨¨˜˜˜˜˜˜˜˜''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''˜˜˜˜˜˜˜˜˜˜˜¨
