@@ -70,6 +70,37 @@ let drums_full = stack(
   
   //sound("<sh>*8").bank("RolandTR808").gain(.25),
   sound("<bd - bd [- sd]>*8").bank("RolandTR808") ._punchcard()
+
+// 4-on-the-floor kick
+s("<bd>*4").bank("RolandTR808").gain(0.95)
+
+// offbeat hat (8ths, classic)
+s("<- hh>*8").bank("LinnDrum").gain(0.18)
+
+// backbeat clap (2 & 4)
+s("<- cp:3>*4").bank("RolandTR808").gain(0.4)
+
+// ghost snares sprinkled (quiet)
+s("sd:10").struct("x(5,16,7)").bank("RolandTR808").gain(0.22)
+
+// 16th shaker bed
+s("<sh>*16").bank("RolandTR808").gain(0.18).lpf(7000)
+
+// open-hat on & of 2 and & of 4
+s("<- oh>*8").bank("RolandTR808").gain(0.22).mask("<0 1 0 1>")
+
+// rim 3-3-2 syncopation
+s("rim").bank("RolandTR808").struct("x(3,8,0)").fast(2).gain(0.35)
+
+// ride Euclidean (11 hits over 16, slight rotate)
+s("ride").bank("RolandTR808").struct("x(11,16,1)").gain(0.2)
+
+// tom fill only on bar 4
+s("tom").bank("RolandTR808").struct("x(7,16,0)").gain(0.6).mask("<0 0 0 1>")
+
+// crash every 8 bars
+s("cr:2").bank("RolandTR808").gain(0.7).mask("<1 0 0 0 0 0 0 0>")
+
 )
 
 let drums = (density < 0.5 ? drums_basic : drums_full)
