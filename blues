@@ -1,0 +1,98 @@
+let bpm = 130
+let cpm = bpm / 4
+
+// PAD with sweeping LPF
+let lfo = sine.slow(4)
+let cutoff = lfo.range(300, 6000)
+
+// KEY MORPH over time
+//let scales = cat('Bb3 minor', 'G3 minor').slow(2)  // 8-bar Bb → 8-bar Gm → loop
+let scales = cat("D4 dorian", "G3 mixolydian").slow(4)
+
+
+
+let pad = "<c4 g4 bb4 c5>*8"
+  .note()
+  .s("gm_pad_poly").gain(0.1) 
+  .lpf(cutoff)
+  .attack(.05).release(.4)
+  .room(.5).rsize(2)
+             // lower pad so drums cut through
+
+// DRUMS: use s("...") before struct + bank
+let euclid  = s("bd").struct("<1 1 1 1>*4").bank("RolandTR808").gain(0.8)
+let hihats = s("hh").struct("<- hh hh hh>*16").gain(.2).lpf(6000).bank("RolandTR808")
+
+let euclid2 = s("sd").struct("x(5,8,1)").bank("RolandTR808").gain(0.3)
+
+// keep your bpm/cpm and pad + drums as you already have:
+
+// MELODY: Bb major-ish run to sit above your pad
+let lead = n("<0 2 5 6 7 8 9 0>*8")
+  .scale(scales)
+  .s("gm_lead_2_triangle")
+  .attack(.0).decay(.2).sustain(.2).release(.1)
+  .lpf(cutoff).gain(.4)
+  // try one of these echo flavors:
+ //.echo(6, 1/8, .55)     // crisp 1/8-note repeats
+   //.echo(4, 1/6, .6)   // triplet feel
+  .echo(8, 1/16, .7)  // faster, longer tail
+
+
+
+// Degree-based melody (0=root, 2=3rd, etc.)
+let morphLead = cat(
+  n("<0 2 [4 5] 7 5 4 2>*8"),   // phrase 1, played twice
+  n("<7 5 4 2 [0 -1 0 2]>*4")   // phrase 2, descending + up
+) // a simple do–mi–sol type run
+  .scale(scales).transpose(12)                           // <-- key changes live
+  .s("gm_lead_2_sawtooth").gain(1)
+  .attack(.1).decay(.1).sustain(.2).release(.2)
+  .lpf(6000)
+  .echo(6, 1/16, .45)
+
+
+
+// === HATS: 11 hits over 16 steps, slightly rotated
+let hats = s("hh")
+  .struct("x(11,16,2)")        // 11/16 euclidean, rotate by 2
+  .bank("LinnDrum")
+  .gain(0.22)
+
+// Accents on the &’s (alternating loud/soft)
+let hatAccent = hats.gain("<1 0.7>*8")
+
+// === HAT FILL: dense 16ths, brighter, only on bar 4
+let hatFill = s("<hh:2>*16")
+  .bank("LinnDrum")
+  .gain(0.3)
+  .lpf(6000)
+  .mask("<0 0 0 1>")           // only 4th bar of a 4-bar loop
+
+// === OPTIONAL OPEN-HAT “tick” on offbeats
+let oh = s("<- hh:3>*8")
+  .bank("LinnDrum")
+  .gain(0.18)
+  .mask("<1 1 0 1>")           // skip bar 3 a bit for variety
+
+// COMBINE (you can drop `oh` if you want it simpler)
+let euclidHats = stack(hatAccent, hatFill, oh).gain(0.1)
+
+let melody ="<0 2 4 5 6 5 4 2>*4"   // scale degrees
+  .n()
+  .scale(scales).gain(0.5)
+  .s("gm_pad_poly").fast(2)
+  .room(0.9).rsize(2).superimpose(add(7)).gain(0.3)
+
+
+
+// PLAY with your existing pad + drums:
+stack(pad, euclid, euclid2, euclidHats,lead,
+melody, morphLead).cpm(cpm).room(slider(0.416,0,1)).rsize(3)
+
+
+
+
+
+
+

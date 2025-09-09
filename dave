@@ -1,0 +1,75 @@
+// tempo
+setcps(130/60)  // 130 BPM
+
+const PG = [
+  "{0.8}",
+  "0.3 0.8".fast(4),
+  "{0.3 0.8!6 0.3 0.8!2 0.3 0.8!3 0.3 1}",
+  "{0.3 0.8!3 0.3 0.8!2 0.3 0.8!3 0.3 0.8!2 0.3 0.8}%16",
+  "{0.4 1!9 0.4 1!5 0.4 1!7 0.4 1!3 <1 0.4> 1}%16"
+]
+
+const Structures = [
+  "{~}",
+  "x*4",
+  "{x ~!6 x ~ ~ x ~!3 x ~}%16",
+  "{x ~!3 x ~!3 x ~!2 x ~}%16",
+  "{x ~!9 x ~!5 x ~ x ~!7 x ~!3 <~ x> ~}%16"
+]
+
+
+//stack(
+  // simple tech click replaced with 808 rim for reliability
+ // s("rim").bank("RolandTR808").struct(pick(Structures, beat)).gain(0.8),
+
+  // s("breaks165").gain(0.6).loopAt(1).chop(16).fit().postgain(pick(PG, beat)),
+  // s("psr:[2|12|24|25]").fast(4).struct("x!7 ~ x!3 ~ x!3 ~").jux(rev).hpf(1000).postgain(pick(PG, beat))
+//).punchcard({width:1400,height:200})
+
+let scales = cat("D4 dorian", "G3 mixolydian").slow(4)
+
+let lead = n("<0 2 5 6 7 8 9 0>*8")
+  .scale(scales)
+  .s("gm_lead_2_triangle")
+  .attack(.0).decay(.2).sustain(.2).release(.1)
+  .lpf(6000).gain(.3)
+  // try one of these echo flavors:
+ //.echo(6, 1/8, .55)     // crisp 1/8-note repeats
+   //.echo(4, 1/6, .6)   // triplet feel
+  .echo(8, 1/16, .7)  // faster, longer tail
+
+
+let morphLead = cat(
+  n("<[0 2] [4 5] 7 5 4 2>"*2),   // phrase 1, played twice
+  n("<7 5 4 2 [0 -1] [4 2]>"*2)   // phrase 2, descending + up
+) // a simple do–mi–sol type run
+  .scale(scales).transpose(12)                           
+  .s("gm_lead_2_sawtooth").gain(1)
+  .attack(.1).decay(.1).sustain(.2).release(.2)
+  .lpf(6000)
+  .echo(6, 1/16, .45)
+
+let melody ="<0 2 4 5 6 5 4 2>*2"   // scale degrees
+  .n()
+  .scale(scales).gain(0.5)
+  .s("gm_pad_poly").fast(2)
+  .room(0.9).rsize(2).superimpose(add(7)).gain(0.2).lpf(3000)
+
+let drums = stack(
+  //s(" [~ cp]").bank("KorgDDM110").postgain(0.2).lpf(3000).slow(2),
+  s("hh hh").bank("RolandTR808").room(0.2).gain(0.5).fast(2),
+  s("{~ ~ rim ~ cp ~ rim cp ~!2 rim ~ cp ~ <rim ~>!2}%4").bank("KorgDDM110").speed(1.2).gain(0.2),
+  s("bd").bank("RolandTR808").room(0.3).gain(0.9),
+  //s("~ cp").bank("RolandTR909").gain(0.4).slow(2).decay(0.1),
+  s("hh").struct("[x!3 ~!2 x!0 ~]").bank("RolandTR808").room(sine.range(0.1,0.4)).gain(0.6).fast(1.25)
+     ).lpf(slider(636.3,300,6000))
+
+
+//all(x=>x.room(mouseX.segment(4).range(0,2)))
+// 
+//all(x=>x.lpf(mouseX.segment(8).range(4000,200)))
+// all(x=>x.hpf(mouseX.segment(3).range(0,10000)))
+// all(x=>x.cut(2))
+
+
+stack(drums, lead, melody)
