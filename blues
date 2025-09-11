@@ -1,98 +1,124 @@
-let bpm = 130
+let bpm = 115
 let cpm = bpm / 4
 
-// PAD with sweeping LPF
-let lfo = sine.slow(4)
-let cutoff = lfo.range(300, 6000)
+//░▒▓████████▓▒░▒▓█▓▒░      ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░░▒▓████████▓▒░ 
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░ 
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓██▓▒░  
+//░▒▓██████▓▒░ ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██▓▒░    
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓██▓▒░      
+//░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░        
+//░▒▓█▓▒░      ░▒▓████████▓▒░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░  @_____florenz moooooor
 
-// KEY MORPH over time
-//let scales = cat('Bb3 minor', 'G3 minor').slow(2)  // 8-bar Bb → 8-bar Gm → loop
+samples({
+  ruteronima: 'ruteronima.mp3',
+  fbi: 'with the fbi silly.wav',
+  chanch: 'sort chanch.wav',
+  orianne: 'orianne junks.wav'
+
+}, 'https://raw.githubusercontent.com/florfontana02/florenz-livecoding/main/samples/')
+
+const index = 4
+
+const amps = [
+  "{0.8}",
+  "0.3 0.8".fast(4),
+  "{0.3 0.8!6 0.3 0.8!2 0.3 0.8!3 0.3 1}",
+  "{0.3 0.8!3 0.3 0.8!2 0.3 0.8!3 0.3 0.8!2 0.3 0.8}%16",
+  "{0.4 1!9 0.4 1!5 0.4 1!7 0.4 1!3 <1 0.4> 1}%16"
+]
+
+const patterns = [
+  "{~}","x*4","{x ~!6 x ~ ~ x ~!3 x ~}%8",
+  "{x ~!3 x ~!3 x ~!2 x ~}%4",
+  "{x ~!9 x ~!5 x ~ x ~!7 x ~!3 <~ x> ~}%8"
+]
+
+
 let scales = cat("D4 dorian", "G3 mixolydian").slow(4)
 
-
-
-let pad = "<c4 g4 bb4 c5>*8"
-  .note()
-  .s("gm_pad_poly").gain(0.1) 
-  .lpf(cutoff)
-  .attack(.05).release(.4)
-  .room(.5).rsize(2)
-             // lower pad so drums cut through
-
-// DRUMS: use s("...") before struct + bank
-let euclid  = s("bd").struct("<1 1 1 1>*4").bank("RolandTR808").gain(0.8)
-let hihats = s("hh").struct("<- hh hh hh>*16").gain(.2).lpf(6000).bank("RolandTR808")
-
-let euclid2 = s("sd").struct("x(5,8,1)").bank("RolandTR808").gain(0.3)
-
-// keep your bpm/cpm and pad + drums as you already have:
-
-// MELODY: Bb major-ish run to sit above your pad
-let lead = n("<0 2 5 6 7 8 9 0>*8")
-  .scale(scales)
-  .s("gm_lead_2_triangle")
+let lead = n("<0 5 [8 9] 3 5 [6 7]>*2")
+  .scale(scales).transpose("<12 0>")
+  .s("gm_lead_2_sawtooth")
   .attack(.0).decay(.2).sustain(.2).release(.1)
-  .lpf(cutoff).gain(.4)
-  // try one of these echo flavors:
- //.echo(6, 1/8, .55)     // crisp 1/8-note repeats
-   //.echo(4, 1/6, .6)   // triplet feel
-  .echo(8, 1/16, .7)  // faster, longer tail
+  //.lpf(8000)
+ //.echo(6, 1/8, .55) 
+ //  .echo(4, 1/6, .6)
+  //.echo(8, 1/16, .7)
+.gain(3)._pianoroll({width:1000, weight:10})
 
 
-
-// Degree-based melody (0=root, 2=3rd, etc.)
-let morphLead = cat(
-  n("<0 2 [4 5] 7 5 4 2>*8"),   // phrase 1, played twice
-  n("<7 5 4 2 [0 -1 0 2]>*4")   // phrase 2, descending + up
-) // a simple do–mi–sol type run
-  .scale(scales).transpose(12)                           // <-- key changes live
-  .s("gm_lead_2_sawtooth").gain(1)
+let bass = cat(
+  n("<[0 2] [4 5] 7 5 4 2>*4"),   
+  n("<7 5 4 2 [0 -1] [4 2]>*4")   
+) 
+  .scale(scales).transpose(0)                           
+  .s("gm_lead_2_sawtooth").gain(3)
   .attack(.1).decay(.1).sustain(.2).release(.2)
   .lpf(6000)
-  .echo(6, 1/16, .45)
+  //.echo(6, 1/16, .45)
 
-
-
-// === HATS: 11 hits over 16 steps, slightly rotated
-let hats = s("hh")
-  .struct("x(11,16,2)")        // 11/16 euclidean, rotate by 2
-  .bank("LinnDrum")
-  .gain(0.22)
-
-// Accents on the &’s (alternating loud/soft)
-let hatAccent = hats.gain("<1 0.7>*8")
-
-// === HAT FILL: dense 16ths, brighter, only on bar 4
-let hatFill = s("<hh:2>*16")
-  .bank("LinnDrum")
-  .gain(0.3)
-  .lpf(6000)
-  .mask("<0 0 0 1>")           // only 4th bar of a 4-bar loop
-
-// === OPTIONAL OPEN-HAT “tick” on offbeats
-let oh = s("<- hh:3>*8")
-  .bank("LinnDrum")
-  .gain(0.18)
-  .mask("<1 1 0 1>")           // skip bar 3 a bit for variety
-
-// COMBINE (you can drop `oh` if you want it simpler)
-let euclidHats = stack(hatAccent, hatFill, oh).gain(0.1)
-
-let melody ="<0 2 4 5 6 5 4 2>*4"   // scale degrees
+let melody ="<0 2 4 5 6 5 4 2>*2"  
   .n()
-  .scale(scales).gain(0.5)
+  .scale(scales).gain(0.5).transpose(0)
   .s("gm_pad_poly").fast(2)
-  .room(0.9).rsize(2).superimpose(add(7)).gain(0.3)
+  .room(0.9).rsize(2).superimpose(add(7))
+  .gain(0.3).lpf(3000)._scope({width:10000, weight:1000})
+
+let drums = stack(
+  s("rim").bank("RolandTR808").struct(pick(patterns, index)).gain(0.8),
+  s(" [~ cp]").bank("KorgDDM110").postgain(0.2).lpf(3000).slow(2),
+  s("hh hh").bank("RolandTR808").room(0.2).gain(0.5).fast(2),
+  s("{~ ~ rim ~ cp ~ rim cp ~!2 rim ~ cp ~ <rim ~>!2}%4").bank("KorgDDM110").speed(1.2).gain(0.2),
+ s("bd").bank("RolandTR808").room(0.3).gain(0.9),
+  //s("~ cp").bank("RolandTR909").gain(0.4).slow(2).decay(0.1),
+  //s("hh").struct("[x!3 ~!2 x!0 ~]").bank("RolandTR808").room(sine.range(0.1,0.4)).gain(0.6).fast(1.25),
+//s("hh:3").fast(1).struct("x!7 ~ x!3 ~ x!3 ~").hpf(6000).postgain(pick(amps, index)).bank("RolandTR606")
+     ).lpf(slider(4873.8,300,8000))._punchcard({width:1000, weight:1000})
 
 
+let hola_jero = s("ruteronima/2").begin(.35).end(.6).attack(.25)
+.room(room()).rsize(2).gain(slider(1,0,1)).lpf(slider(1975.8,300,6000))
 
-// PLAY with your existing pad + drums:
-stack(pad, euclid, euclid2, euclidHats,lead,
-melody, morphLead).cpm(cpm).room(slider(0.416,0,1)).rsize(3)
+let fbi = s("fbi/4").begin(.0).end(1).attack(.25)
 
+let ruteronima = s("ruteronima").begin("<.1 .37 .83 .67>").end("<0.3 .60 1 .83>")
+  .mask("<0 0 0 1>")
 
+let orianne = s("orianne").begin("<.12 .47 .79 .67>").end("<0.25 .63 .98 .83>") // todas, 2008, hasta hoy
+  .mask("<1 1 0 0>")
 
+let vocals = orianne
+  .lpf(slider(1099,200,6000))
+  .attack(.1).room(0.3).rsize(2).gain(slider(0.645,0,1))
+  .delay(".25:.45:.4").slow(4)//.mask("<1  1 0>/4")
+  ._scope({width:10000, weight:1000})
+stack(drums, melody, vocals, lead).cpm(cpm).fast(4)
 
+//                                    ¸¸,..--------------------.....,¸
+//                      ¸,..--··˜˜¨¨                                     ¨¨˜·.¸
+//                 ¸.·˜                                                          ˜·¸
+//             ¸.·˜                                                          ¸˜    ˜¸
+//         ¸¸·''                                                           ¸ ·  ˜¸  ˜
+//        ¸˜¨  ¸¸˜                                                    ¸.·˜¸ ·˜
+//       ¸'     ˜·¸                                         ¸,..--·.¸
+//      ¸'¸¸¸      ˜-.¸                                 ¸,..---···-¸˜¨¸
+//    ·˜¸¸¸¸¸¸¯¯˜·.¸      .¸·˜                 ¸,-·˜;;;;;;;;;;;;¸'˜
+//       ¸·˜ ;;;;;;,˜·¸   ˜¸      ˜.¸          ¸.˜;;;;;;;;;;;;;;;;¸'
+//      ';;;;;;;;;;;;;;;;¸¸ '¸       ´      ¸·';;;;;;;;;;;;;;;;; ¸´
+//      ';;;;;;;;;;;;;;;;;;'¸ ˜¸         /¸/;;;;;;;;;;;;;;;; ¸.·˜ ¸˜       ¸˜    blip blorp
+//      ˜·.,¸¸¸.....----·¸/        ˜-¨˜˜˜˜˜˜˜˜¨¨¸¸,.·-'˜               ˜·¸·˜
+//           ˜¯¸¸¸¸¸   ¸·˜   ¸·    ´  ¯¯¯¯¯                        ¸·'˜
+//              ˜·¸   ·¨¸¸,,,.˜ .,¸                               ¸,.·˜¨
+//                  ˜¨¸           ¯˜·¸              ¸.···˜˜·¸.·˜¨¸/
+//                     ˜·¸¸¸,,,,¸¸¸¸   ˜¸         ¸·˜   ¸.·˜,˜ ¸·˜¨
+//                        ¨¸¨˜˜˜'˜¨¨¯'   ˜¸       ˜¸,.·˜¸;     \¸
+//                          ˜¸            ˜¸.   ¸·˜;;;˜         '¸
+//                           ˜¸¸          ¸,.-·¨¸;;;              '¸
+//                          ¸,·´¯¨˜˜˜¨¯¯;;;;;;;˜                 ˜.,¸¸¸
+//  ;;;;;;;;;;;;;;;;;  ¸,.·˜;;;;;;;;;;;;;;;;;;;˜                          ˜·¸ ';;
+//  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  ;;
+//  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  ;;
+//    ¨¨¨¨¨¨¨¨˜˜˜˜˜˜˜˜''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''˜˜˜˜˜˜˜˜˜˜˜¨
 
 
 
