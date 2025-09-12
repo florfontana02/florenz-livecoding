@@ -1,3 +1,46 @@
+
+samples({
+  ruteronima: 'ruteronima.mp3',
+  fbi: 'with the fbi silly.wav',
+  chanch: 'sort chanch.wav',
+  orianne: 'orianne junks.wav',
+  anto: 'ants pane.wav'
+
+}, 'https://raw.githubusercontent.com/florfontana02/florenz-livecoding/main/samples/')
+
+
+
+// --- helpers ---------------------------------------------------------------
+let makeBank = (name, Bpat, Epat) => {
+  let base = s(name).begin(Bpat).end(Epat).attack(.12)
+  return [
+    base.mask("<1 0 0 0>"),
+    base.mask("<0 1 0 0>"),
+    base.mask("<0 0 1 0>"),
+    base.mask("<0 0 0 1>")
+  ]
+}
+
+
+
+// --- define per-sample chop sets ------------------------------------------
+const R = makeBank("ruteronima",
+  "<.10 .37 .83 .67>", "<.30 .60 1 .83>"
+)
+const F = makeBank("fbi/4",               // grid for the long sample
+  "<0 .25 .5 .75>", "<.25 .5 .75 1>"
+)
+const O = makeBank("orianne",
+  "<.12 .47 .79 .67>", "<.25 .63 .98 .83>"
+)
+const A = makeBank("anto",
+  "<.02 .13 .47 .79>", "<.10 .20 .63 .98>"
+)
+
+// “dictionary” = array of sets (each set has 4 chops)
+const sets = [R, F, O, A]
+
+
 const amps = [
   "{0.8}",
   "0.3 0.8".fast(4),
@@ -12,26 +55,10 @@ const patterns = [
   "{x ~!9 x ~!5 x ~ x ~!7 x ~!3 <~ x> ~}%8"
 ]
 
-const xops = [ ".12@2 .5!2",
-               ".81!2 .67!2",
-               rand.seg(8)
-]
-
-let bpm = 125
+let bpm = 115
 let cpm = bpm / 4
 
-
-samples({
-  ruteronima: 'ruteronima.mp3',
-  fbi: 'with the fbi silly.wav',
-  chanch: 'sort chanch.wav',
-  orianne: 'orianne junks.wav',
-  anto: 'ants pane.wav'
-
-}, 'https://raw.githubusercontent.com/florfontana02/florenz-livecoding/main/samples/')
-
-
-//░▒▓████████▓▒░▒▓█▓▒░      ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░░▒▓████████▓▒░  
+//░▒▓████████▓▒░▒▓█▓▒░      ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░░▒▓████████▓▒░ 
 //░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░ 
 //░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓██▓▒░  
 //░▒▓██████▓▒░ ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██▓▒░    
@@ -46,87 +73,88 @@ samples({
 
 let energy   = 0.8
 
-const index = 1
+const index = 4
 
+// --- controllers (swap set & slice over time, or fix them) -----------------
+let setCtrl   = segment(16)  // switch sample set every 16 beats
+let sliceCtrl = segment(4)   // cycle through 4 chops per bar
+// (for fixed choices instead: let setCtrl = 0; let sliceCtrl = 2)
 
-let scales = cat( "G3:mixolydian","D4:dorian").slow(8)
+let scales = cat("D4 dorian", "G3 mixolydian").slow(4)
 
 let lead = n("<0 5 [8 9] 3 5 [6 7]>*2")
-  .scale(scales).transpose("<-12 0>")
-  .s("gm_shakuhachi")
+  .scale(scales).transpose("<12 0>")
+  .s("gm_lead_2_sawtooth")
   .attack(.0).decay(.2).sustain(.2).release(.1)
   //.lpf(8000)
  //.echo(6, 1/8, .55) 
  //  .echo(4, 1/6, .6)
   //.echo(8, 1/16, .7)
-.gain(5)._pianoroll({width:1000, weight:10})
+.gain(3)._pianoroll({width:1000, weight:10})
 
 
 let bass = cat(
-  n("<[0 2] [4 5] 7 5 4 2>"),   
-  n("<7 5 4 2 [0 -1] [4 2]>")   
+  n("<[0 2] [4 5] 7 5 4 2>*4"),   
+  n("<7 5 4 2 [0 -1] [4 2]>*4")   
 ) 
-  .scale(scales).transpose(-24)                           
-  .s("gm_synth_bass_2").gain(4)
-  .attack(0).decay(.1).sustain(.2)
-  .release(.15)                             
-  .lpf(1000)
+  .scale(scales).transpose(0)                           
+  .s("gm_lead_2_sawtooth").gain(3)
+  .attack(.1).decay(.1).sustain(.2).release(.2)
+  .lpf(6000)
   //.echo(6, 1/16, .45)
 
-let melo ="<0 [2 4] 5 6 5 4 2>"  
+let melo ="<0 2 4 5 6 5 4 2>*2"  
   .n()
   .scale(scales).gain(0.5).transpose(0)
-  .s("gm_fretless_bass").fast(2)
+  .s("gm_pad_poly").fast(2)
   .room(0.9).rsize(2).superimpose(add(7))
-  .gain(0.3).lpf(1000)._scope({width:10000, weight:1000})
-// drumz de dj_dave amor ella es barbara
+  .gain(0.3).lpf(3000)._scope({width:10000, weight:1000})
+
 let drumz = stack(
-  //s("rim").bank("RolandTR808").struct(pick(patterns, index)).gain(0.8),
-  s(" [~ cp]").bank("KorgDDM110").postgain(0.3).lpf(3000).slow(2),
-  s("hh hh").bank("RolandTR808").room(0.2).gain(0.4).fast(2),
-  s("{~ ~ rim ~ cp ~ rim cp ~!2 rim ~ cp ~ <rim ~>!2}%4").bank("KorgDDM110").speed(1.2).gain(0.4),
-  s("bd").bank("RolandTR909").room(0.3).gain(1),
- // s("~ cp").bank("RolandTR909").gain(0.9).slow(2).decay(0.1),
- //s("hh").struct("[x!3 ~!2 x!0 ~]").bank("RolandTR808").room(sine.range(0.1,0.4)).gain(0.4).fast(1.25),
- //s("hh:3").fast(1).struct("x!7 ~ x!3 ~ x!3 ~").hpf(6000).postgain(pick(amps, index)).bank("RolandTR808").gain(.4).hpf(slider(6000,20, 6000))
+  s("rim").bank("RolandTR808").struct(pick(patterns, index)).gain(0.8),
+  //s(" [~ cp]").bank("KorgDDM110").postgain(0.2).lpf(3000).slow(2),
+  s("hh hh").bank("RolandTR808").room(0.2).gain(0.5).fast(2),
+  //s("{~ ~ rim ~ cp ~ rim cp ~!2 rim ~ cp ~ <rim ~>!2}%4").bank("KorgDDM110").speed(1.2).gain(0.2),
+  s("bd").bank("RolandTR808").room(0.3).gain(0.9),
+  s("~ cp").bank("RolandTR909").gain(0.4).slow(2).decay(0.1),
+  //s("hh").struct("[x!3 ~!2 x!0 ~]").bank("RolandTR808").room(sine.range(0.1,0.4)).gain(0.6).fast(1.25),
+  //s("hh:3").fast(1).struct("x!7 ~ x!3 ~ x!3 ~").hpf(6000).postgain(pick(amps, index)).bank("RolandTR606").gain(.2)
      ).lpf(slider(8000,300,8000))._punchcard({width:1000, weight:1000})
-
-
-
 
 
 let hola_jero = s("ruteronima/2").begin(.35).end(.6).attack(.25)
 .room(room()).rsize(2).gain(slider(1,0,1)).lpf(slider(1975.8,300,6000))
 
+let fbi = s("fbi/4").begin(.0).end(1).attack(.25)
 
-let fbi = s("fbi").begin(.0).end(1).attack(.25)
+let ruteronima = s("ruteronima").begin("<.1 .37 .83 .67>").end("<0.3 .60 1 .83>")
+  .mask("<0 0 0 1>")
 
-let ruteronima = s("ruteronima").begin("<.1 .37 .83 .67>").end("<0.3 .60 1 .83>").mask("<1 1 1 1>") //hola jero, no te olvidez, kiss, the body
-//.scrub(irand(8).div(8).seg(4).rib("<0 12>",1))
+let orianne = s("orianne").begin("<.12 .47 .79 .67>").end("<0.25 .63 .98 .83>") // todas, 2008, hasta hoy
+  .mask("<0 0 1 0>")
 
-let orianne = s("orianne")
-//.begin("<.12 .47 .79 .67>").end("<0.25 .63 .98 .83>").mask("<1 0 0 0>") // todas, 2008, hasta hoy 
-//.scrub(irand(16).div(16).seg(4).rib("<1 20 5!2 7!2>",1))
-.scrub(irand(16).div(16).seg(4).rib("<2 8>",1)).phaser(.3)
-//   .scrub("<.12@2 .47@2 .79@2 .67@2>")
-//.scrub(pick(xops, "0"))
+let anto = s("anto").begin("<.02 .13 .47 .79 >").end("< .1 0.2 .63 .98 >") // todas, 2008, hasta hoy
+  .mask("<0 1 0 0>")
 
-let anto = s("anto")
-  //.begin("<.02 .13 .5 .9 >").end("<.1 0.2 .62 1>").mask("<0 0 1 0>") // casAAh, hooooojas, todabiaAhh, el y yo<3
-  .scrub(irand(16).div(16).seg(2).rib("<1 15>",2))
-
-   //)
-
-let bucals = orianne
-  .lpf(slider(1289.2,200,3000))             
-  .attack(.1).room(0.5).rsize(2)
-  .gain(slider(0.584,0,1))
-  .delay(".25:.45:.4").slow(2)//.mask("<1 0 1 0>/4")
- // .chop(8).struct("<x ~>*8").slow(2).attack(0)//.release(0.03)
-  
+let bucals = anto
+  .lpf(slider(6000,200,6000))
+  .attack(.1).room(0.3).rsize(2).gain(slider(1,0,1))
+  .delay(".25:.45:.4").slow(4)//.mask("<1 0 1 0>/4")
   ._scope({width:10000, weight:1000})
-stack(drumz,melo, bucals, bass).cpm(cpm).fast(4)
-//
+
+
+let vocals = pick( pick(sets, setCtrl), sliceCtrl )
+  .struct(pick(patterns, segment(5)))     // rotate groove
+  .postgain(pick(amps,     segment(7)))   // rotate dynamics
+  .lpf(slider(4000, 300, 8000))
+  .room(.3).rsize(2)
+  .delay(".25:.45:.4")
+
+// optional spice: one-bar fill on every 8th bar (stutter + reverse)
+let fill = vocals.fast(2).jux(rev).gain(1.05).mask("<0 0 0 0 0 0 0 1>")
+let voxBus = stack(vocals, fill)
+
+stack(drumz, melo, lead).cpm(cpm).fast(4)
 
 //                                    ¸¸,..--------------------.....,¸
 //                      ¸,..--··˜˜¨¨                                     ¨¨˜·.¸
