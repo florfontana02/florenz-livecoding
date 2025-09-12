@@ -20,18 +20,11 @@ const xops = [ ".12@2 .5!2",
 let bpm = 125
 let cpm = bpm / 4
 
-
-samples({
-  ruteronima: 'ruteronima.mp3',
-  fbi: 'with the fbi silly.wav',
-  chanch: 'sort chanch.wav',
-  orianne: 'orianne junks.wav',
-  anto: 'ants pane.wav'
-
-}, 'https://raw.githubusercontent.com/florfontana02/florenz-livecoding/main/samples/')
-
-
-//░▒▓████████▓▒░▒▓█▓▒░      ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░░▒▓████████▓▒░  
+// cosas por hacer:
+//  - choppear samples
+//  - acomodar tracks por canciones
+//  - ver el set de dj dave
+//░▒▓████████▓▒░▒▓█▓▒░      ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░░▒▓████████▓▒░ 
 //░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░ 
 //░▒▓█▓▒░      ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░    ░▒▓██▓▒░  
 //░▒▓██████▓▒░ ░▒▓█▓▒░     ░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓██▓▒░    
