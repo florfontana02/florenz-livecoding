@@ -16,6 +16,17 @@ const xops = [ ".12@2 .5!2",
                ".81!2 .67!2",
                rand.seg(8)
 ]
+await loadOrc('github:kunstmusik/csound-live-code/master/livecode.orc')
+samples({
+  ruteronima: 'ruteronima.mp3',
+  fbi: 'with the fbi silly.wav',
+  chanch: 'sort chanch.wav',
+  orianne: 'orianne junks.wav',
+  anto: 'ants pane.wav'
+
+}, 'https://raw.githubusercontent.com/florfontana02/florenz-livecoding/main/samples/')
+
+
 
 let bpm = 125
 let cpm = bpm / 4
@@ -80,6 +91,7 @@ let drumz = stack(
   s("{~ ~ rim ~ cp ~ rim cp ~!2 rim ~ cp ~ <rim ~>!2}%4").bank("KorgDDM110").speed(1.2).gain(0.4),
   s("bd").bank("RolandTR909").room(0.3).gain(1),
  // s("~ cp").bank("RolandTR909").gain(0.9).slow(2).decay(0.1),
+ //s("bd*2,[~ hh]*2,~ cp").bank('RolandTR909') //housey
  //s("hh").struct("[x!3 ~!2 x!0 ~]").bank("RolandTR808").room(sine.range(0.1,0.4)).gain(0.4).fast(1.25),
  //s("hh:3").fast(1).struct("x!7 ~ x!3 ~ x!3 ~").hpf(6000).postgain(pick(amps, index)).bank("RolandTR808").gain(.4).hpf(slider(6000,20, 6000))
      ).lpf(slider(8000,300,8000))._punchcard({width:1000, weight:1000})
@@ -118,6 +130,31 @@ let bucals = orianne
  // .chop(8).struct("<x ~>*8").slow(2).attack(0)//.release(0.03)
   
   ._scope({width:10000, weight:1000})
+
+
+
+
+
+
+
+// licensed with CC BY-NC-SA 4.0 https://creativecommons.org/licenses/by-nc-sa/4.0/
+// by Felix Roos
+// livecode.orc by Steven Yi
+
+let song = stack(
+  note("<C^7 A7 Dm7 Fm7>/2".voicings('lefthand'))
+  .cutoff(sine.range(500,2000).round().slow(16))
+  .euclidLegato(3,8).csound('FM1')
+  ,
+  note("<[C2 C3] [A1 A2] [D2 D3] [F2 F3]>/2").ply(4).csound('Bass').gain("1 4 1 4")
+  ,
+  note("0 7 [4 3] 2".fast(2/3).off(".25 .125",add("<2 4 -3 -1>"))
+  .slow(2).scale('A4 minor'))
+  .legato(.25).csound('SynHarp')
+  ,
+  s("bd*2,[~ hh]*2,~ cp").bank('RolandTR909')
+).slow(2)
+
 stack(drumz,melo, bucals, bass).cpm(cpm).fast(4)
 //
 
